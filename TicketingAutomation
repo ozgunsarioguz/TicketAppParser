@@ -1,0 +1,124 @@
+from selenium import webdriver as wd
+import chromedriver_binary
+import time
+import re
+from bs4 import BeautifulSoup as soup
+from plyer import notification
+import smtplib
+from email.message import EmailMessage
+
+
+wd = wd.Chrome()
+wd.minimize_window()
+
+wd.implicitly_wait(10)
+
+wd.get("https://ebilet.tcddtasimacilik.gov.tr/")
+#wd.get("https://www.tcddtasimacilik.gov.tr/")
+
+nereden = wd.find_element('id', 'nereden')
+nereden.send_keys("İstanbul(Söğütlü Ç.)")
+nereye = wd.find_element('id', 'nereye')
+nereye.send_keys("ERYAMAN YHT")
+tarih = wd.find_element('name', 'trCalGid_input')
+tarih.clear()
+tarih.send_keys('17.07.2022')
+wd.implicitly_wait(10)
+
+onay = wd.find_element('id', 'btnSeferSorgula')
+onay.click()
+wd.implicitly_wait(10)
+time.sleep(2)
+
+#grabs each row
+
+#page_html = url.read()
+#print(page_html)
+#url.close()
+page_soup = soup(wd.page_source, "html.parser")
+
+rows_economy = page_soup.findAll("li", {"data-label":"ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all ui-state-highlight"})
+rows_business = page_soup.findAll("li", {"data-label":"ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"})
+
+rows = page_soup.findAll(string=re.compile("Pulman"))
+available = False
+available_seats = ""
+
+for row in rows:
+    if "Ekonomi" in row:
+        seats_econ = row[-2]
+        if int(seats_econ) > 2:
+            print("Ekonomi: " + seats_econ)
+            available = True
+            available_seats += seats_econ + ' '
+
+    elif "Business" in row:
+        seats_bus = row[-2]
+        if int(seats_bus) > 0:
+            print("Business: " + seats_bus)
+            available = True
+            available_seats += seats_bus + ' '
+
+if available:
+    print("Seats available!")
+    notification.notify(
+        title = 'TCDD Seat Available',
+        message = 'Available Seats: ' + available_seats,
+        #app_icon = None,
+        app_icon = "tcddlogo.ico",
+        timeout = 50,
+    )
+    msg = EmailMessage()
+    msg.set_content('Available Seats: ' + available_seats)
+    msg['subject'] = 'TCDD Seat Available'
+    msg["to"] = "ozgunderschubert@gmail.com"
+
+    user = "ozgundevops@gmail.com"
+    password = "xfgthnfemzsvrgyn"
+    msg["from"] = user
+
+    server = smtplib.SMTP("smtp.gmail.com", 587)
+    server.starttls()
+    server.login(user, password)
+    server.send_message(msg)
+    server.quit()
+
+    time.sleep(240)
+
+
+elif not available:
+    print("No seats available!")    
+    time.sleep(20)
+
+"""
+class TicketSearch(wd.Chrome):
+    def __init__(self, teardown = False):
+        self.teardown = teardown
+
+        super(TicketSearch, self).__init__()
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.teardown:
+            self.quit()
+
+    def land_first_page(self):
+        self.get("https://ebilet.tcddtasimacilik.gov.tr/")
+        wd.maximize_window()
+        time.sleep(5)
+
+        nereden = wd.find_element(By.ID, 'nereden')
+        nereden.send_keys("İstanbul(Söğütlü Ç.)")
+        nereye = wd.find_element(By.ID, 'nereye')
+        nereye.send_keys("ERYAMAN YHT")
+        
+        time.sleep(3)
+        onay = wd.find_element_by_id('btnSeferSorgula')
+        onay.click()
+
+
+
+with TicketSearch() as bot:
+    bot.land_first_page()
+
+bot.land_first_page()
+
+"""
