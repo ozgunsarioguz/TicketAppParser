@@ -13,8 +13,7 @@ wd.minimize_window()
 
 wd.implicitly_wait(10)
 
-wd.get("https://ebilet.tcddtasimacilik.gov.tr/")
-#wd.get("https://www.tcddtasimacilik.gov.tr/")
+#wd.get("WEBSITE_URL")
 
 nereden = wd.find_element('id', 'nereden')
 nereden.send_keys("İstanbul(Söğütlü Ç.)")
@@ -71,10 +70,10 @@ if available:
     msg = EmailMessage()
     msg.set_content('Available Seats: ' + available_seats)
     msg['subject'] = 'TCDD Seat Available'
-    msg["to"] = "ozgunderschubert@gmail.com"
+    msg["to"] = "RECIEVER_EMAIL_ADRESS"
 
-    user = "ozgundevops@gmail.com"
-    password = "xfgthnfemzsvrgyn"
+    user = "SENDER_EMAIL_ADRESS"
+    password = "PASSWORD"
     msg["from"] = user
 
     server = smtplib.SMTP("smtp.gmail.com", 587)
